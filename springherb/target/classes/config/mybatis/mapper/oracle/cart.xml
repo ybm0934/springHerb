@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.cart">
+	<select id="selectCountCart" parameterType="CartVo" resultType="int">
+		select count(*) from cart
+		where customerid=#{customerId} and productno=#{productNo}
+	</select>
+	
+	<update id="updateCartQty" parameterType="cartVo">
+		update cart
+		set quantity=quantity+#{quantity}
+		where customerid=#{customerId} and productno=#{productNo}
+	</update>
+	
+	<insert id="insertCart" parameterType="cartVo">
+		insert into cart(cartno, customerId, productNo,quantity)
+		values(cart_seq.nextval, #{customerId}, #{productNo},#{quantity})
+	</insert>
+	
+	<select id="selectCartView" parameterType="String" resultType="map">
+		select * from cartview
+		where customerid=#{customerId}
+	</select>	
+	
+	<update id="editCart" parameterType="cartVo">
+		update cart
+		set quantity=#{quantity}
+		where cartno=#{cartNo}
+	</update>
+	
+	<delete id="deleteCartByUserid" parameterType="string">	
+		delete from cart
+		where customerId=#{customerId}
+	</delete>
+	
+</mapper>
+
+
+
+
+
+
+
+
+

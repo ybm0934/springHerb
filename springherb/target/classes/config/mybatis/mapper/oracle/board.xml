@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="config.mybatis.mapper.oracle.board">
+	<resultMap type="BoardVO" id="selResultMap">
+		<id column="no" jdbcType="BIGINT" property="no"/>
+		<result column="name" jdbcType="VARCHAR" property="name"/>
+		<result column="title" jdbcType="VARCHAR" property="title"/>
+		<result column="email" jdbcType="VARCHAR" property="email"/>
+		<result column="content" jdbcType="VARCHAR" property="content"/>
+		<result column="pwd" jdbcType="VARCHAR" property="pwd"/>
+		<result column="readcount" jdbcType="BIGINT" property="readcount"/>
+		<result column="regdate" jdbcType="TIMESTAMP" property="regdate"/>	
+	</resultMap>
+	
+	<sql id="boardCol">
+		no, name,pwd, title, email,regdate,
+			readcount, content, (sysdate-regdate)*24 as newImgTerm 
+	</sql>
+	
+	<sql id="searchWhere">
+		<if test="searchKeyword !=null and searchKeyword !=''">
+			<where>
+				${searchCondition} like '%' || #{searchKeyword} || '%'
+			</where>
+		</if>
+	</sql>
+	
+	<insert id="insertBoard" parameterType="BoardVO">
+		<selectKey keyProperty="no" order="BEFORE" resultType="int">
+			select board_seq.nextval from dual
+		</selectKey>
+		insert into board(no, name, pwd, title, email, content) 
+			values(#{no}, #{name},#{pwd},
+					#{title},#{email},#{content})
+	</insert>
+	
+	<select id="selectAll" parameterType="SearchVO" resultType="BoardVO">
+		select *
+		from
+		(
+		    select rownum as RNUM, list.*
+		    from (
+		        select 
+				<include refid="boardCol"></include>		
+				 from board
+				<include refid="searchWhere"></include>
+				order by no desc
+		    )list
+		)    
+		<![CDATA[
+		where RNUM>#{firstRecordIndex} 
+		and RNUM<=#{firstRecordIndex}+#{recordCountPerPage}
+		]]>
+	</select>
+	
+	<select id="getTotalRecord" parameterType="SearchVO" resultType="int">
+		select count(*) from board
+		<include refid="searchWhere"></include>		
+	</select>
+	
+	<select id="selectByNo" parameterType="int" resultType="BoardVO">
+		select * from board where no=#{no}
+	</select>
+	
+	<update id="updateReadcount" parameterType="int">
+		update board 
+		set readcount=readcount+1 
+		where no=#{no}
+	</update>
+	
+	<update id="updateBoard" parameterType="BoardVO">
+		update board set name=#{name}, title=#{title}, email=#{email}, 
+			content=#{content} 
+		where no=#{no}
+	</update>
+	
+	<select id="selectPwd" parameterType="int" resultType="string">
+		select pwd from board where no=#{no}
+	</select>
+	
+	<delete id="deleteBoard" parameterType="int">
+		delete from board where no=#{no}	
+	</delete>
+	
+	<delete id="deleteMulti" parameterType="map">
+		delete from board
+		where no in 
+		<foreach item="no" collection="nos" open="(" close=")" separator=","
+			index="index">
+			#{no}
+		</foreach>
+	</delete>
+	
+	<!-- delete from board
+		where no in (116, 112, 110) -->
+	
+	<select id="selectMainNotice" resultType="BoardVO">
+		<![CDATA[
+		select *
+		from 
+		(
+		    select no, title from board order by no desc
+		)where rownum<=6
+		]]>
+	</select>
+	
+	
+</mapper>
+
+
+
+
+
+
+
+
+
